@@ -2,13 +2,14 @@ import os
 import glob
 import subprocess
 import tempfile
-import openai
+from openai import OpenAI, OpenAIError
 from logger import logger
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("Необходимо задать переменную окружения OPENAI_API_KEY")
-openai.api_key = OPENAI_API_KEY
+
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 AUDIO_FOLDER = "audio"
 OUTPUT_FILE = "output.txt"
@@ -53,12 +54,12 @@ def transcribe_audio(file_path):
 
     try:
         with open(target_file, "rb") as audio_file:
-            transcript = openai.Audio.transcribe(
+            transcript = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file
             )
-        text = transcript["text"] if isinstance(transcript, dict) else transcript.text
-    except openai.error.OpenAIError as api_err:
+        return transcript.text
+    except OpenAIError as api_err:
         logger.error(f"Ошибка OpenAI API при обработке {target_file}: {api_err}")
         raise
     except Exception as e:
@@ -69,8 +70,7 @@ def transcribe_audio(file_path):
             try:
                 os.remove(target_file)
             except Exception as cleanup_err:
-                logger.error(f"Ошибка удаления временного файла {target_file}: {cleanup_err}")
-    return text
+                logger.warning(f"Ошибка удаления временного файла {target_file}: {cleanup_err}")
 
 def main():
     audio_files = get_audio_files()
@@ -90,5 +90,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
