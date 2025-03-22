@@ -1,0 +1,8 @@
+.DS_STORE
+**/.DS_STORE
+.env
+**/.env
+.gptignore
+audio/
+logs/
+*.txt

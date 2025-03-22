@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  transcriber:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - ./audio:/app/audio
+      - ./logs:/app/logs
+      - type: bind
+        source: ./output.txt
+        target: /app/output.txt
+
